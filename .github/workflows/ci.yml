@@ -1,0 +1,23 @@
+# Checks the install script only. CI never downloads or compiles the codec: see README.md.
+name: ci
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  script:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: shellcheck
+        run: shellcheck install.sh
+      - name: help and refusal
+        run: |
+          ./install.sh --help | grep -q 'usage: ./install.sh'
+          # No yes: it stops before anything is downloaded or built.
+          if ./install.sh </dev/null 2>err; then exit 1; fi
+          grep -q 'not confirmed; nothing downloaded or built' err
